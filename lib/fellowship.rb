@@ -57,7 +57,7 @@ module Fellowship
       return array_of_hashes
     end
 
-    def self.find_route(start_id,end_id,segments,endpoint1, endpoint2)
+    def self.find_route(start_id, end_id, segments, endpoint1, endpoint2)
       possible_routes = []
       directions = []
       starts = segments.select{ | segment | segment[endpoint1] == start_id || segment[endpoint2] == start_id }
