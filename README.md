@@ -18,13 +18,22 @@ Or install it yourself as:
 
 ## Usage
 
+### Basic
 ```
 Fellowship::Fellowship.deep_copy(x) # => x
 Fellowship::Fellowship.factorial(5) # => 120
 Fellowship::Fellowship.prime?(83) # => true
 Fellowship::Fellowship.int_digit(234678, 1)  # => 3
+```
 
+### Hash Sorting
+```
 Fellowship::Fellowship.sort_hashes_by(array_of_hashes, *keys)
+```
+
+### Route Finding
+
+```
 Fellowship::Fellowship.find_route(start_id, end_id, segments, endpoint1, endpoint2)
 ```
 
