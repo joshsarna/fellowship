@@ -57,10 +57,13 @@ module Fellowship
       return array_of_hashes
     end
 
-    def self.find_route(start_id, end_id, segments, endpoint1, endpoint2)
+    def self.find_shortest_route(start_id, end_id, segments, endpoint1, endpoint2, distance)
       possible_routes = []
       directions = []
+      successful_routes = []
+      # p segments
       starts = segments.select{ | segment | segment[endpoint1] == start_id || segment[endpoint2] == start_id }
+      # p starts
       starts.each do |start|
         if start[endpoint1] == start_id
           first_tail = start[endpoint2]
@@ -68,9 +71,9 @@ module Fellowship
           first_tail = start[endpoint1]
         end
         if first_tail == end_id
-          return {route: [start.id], tail: first_tail}
+          return {route: [start[:id]], tail: first_tail}
         end
-        possible_routes << {route: [start.id], tail: first_tail}
+        possible_routes << {route: [start[:id]], tail: first_tail}
       end
       route_achieved = false
       while possible_routes != []
@@ -86,8 +89,78 @@ module Fellowship
             if next_tail == end_id
               route_achieved = true
             end
-            if !curr_route[:route].index(next_step.id) || curr_route[:route].index(next_step.id) < 0
-              updated_route = {route: curr_route[:route] << next_step.id, tail: next_tail}
+            if !curr_route[:route].index(next_step[:id]) || curr_route[:route].index(next_step[:id]) < 0
+              updated_route = {route: curr_route[:route] << next_step[:id], tail: next_tail}
+              if route_achieved == true
+                successful_routes << updated_route
+                route_achieved = false
+              else
+                new_possible_routes << updated_route
+                curr_route[:route] = curr_route[:route][0..-2]
+              end
+            end
+          end
+        end
+        possible_routes = new_possible_routes
+      end
+
+      if successful_routes.length == 0
+        return "No route found."
+      end
+
+      # find distances
+      successful_routes.each_with_index do |route, index|
+        d = 0
+        sr_segments = route[:route]
+        sr_segments.each do |sr_segment|
+          d += segments.select{ | segment | segment[:id] == sr_segment }[0][distance].to_f
+        end
+        successful_routes[index][distance] = d
+      end
+
+      # find shortest distance
+      shortest_distance = successful_routes[0][distance]
+      shortest = successful_routes[0]
+      successful_routes.each do |sr|
+        if sr[distance] < shortest_distance
+          shortest_distance = sr[distance]
+          shortest = sr
+        end
+      end
+      return shortest
+    end
+
+    def self.find_a_route(start_id, end_id, segments, endpoint1, endpoint2)
+      possible_routes = []
+      directions = []
+      starts = segments.select{ | segment | segment[endpoint1] == start_id || segment[endpoint2] == start_id }
+      starts.each do |start|
+        if start[endpoint1] == start_id
+          first_tail = start[endpoint2]
+        else
+          first_tail = start[endpoint1]
+        end
+        if first_tail == end_id
+          return {route: [start[:id]], tail: first_tail}
+        end
+        possible_routes << {route: [start[:id]], tail: first_tail}
+      end
+      route_achieved = false
+      while possible_routes != []
+        new_possible_routes = []
+        possible_routes.each do |curr_route|
+          nexts = segments.select{ | segment | segment[endpoint1] == curr_route[:tail] || segment[endpoint2] == curr_route[:tail] }
+          nexts.each do |next_step|
+            if next_step[endpoint1] === curr_route[:tail]
+              next_tail = next_step[endpoint2]
+            else
+              next_tail = next_step[endpoint1]
+            end
+            if next_tail == end_id
+              route_achieved = true
+            end
+            if !curr_route[:route].index(next_step[:id]) || curr_route[:route].index(next_step[:id]) < 0
+              updated_route = {route: curr_route[:route] << next_step[:id], tail: next_tail}
               if route_achieved == true
                 return updated_route
               else
